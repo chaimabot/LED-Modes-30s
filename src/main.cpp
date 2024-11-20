@@ -1,18 +1,6 @@
-#include <Arduino.h>  
-#define LED_PIN 2
+#include <Arduino.h>
+#include "config.h"
 
-const unsigned long LED_Delays[3][2] = {
-    {500, 500}, // LED A
-    {50, 50},   // LED B
-    {10, 10}    // LED C
-};
-
-volatile int currentState = 0;
-unsigned long previousMillis = 0;
-unsigned long previousMillisLED = 0; 
-const long interval = 30000;  
-
-unsigned long lastSwitchTime = 0;  
 void handleLED(int state, unsigned long currentMillis);
 
 void setup() {
@@ -23,6 +11,7 @@ void setup() {
 void loop() {
     unsigned long currentMillis = millis();
 
+    // Changer d'état toutes les 30 secondes
     if (currentMillis - lastSwitchTime >= interval) {
         lastSwitchTime = currentMillis;
         currentState = (currentState + 1) % 3;
