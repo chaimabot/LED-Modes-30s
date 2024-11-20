@@ -1,16 +1,19 @@
-#include <Arduino.h>  // Inclure le framework Arduino pour utiliser les fonctions de base comme pinMode, digitalWrite, etc.
-
+#include <Arduino.h>  
 #define LED_PIN 2
-#define DELAY_ON_A 500
-#define DELAY_OFF_A 500
-#define DELAY_ON_B 50
-#define DELAY_OFF_B 50
-#define DELAY_ON_C 10
-#define DELAY_OFF_C 10
 
-volatile int currentState = 0;  
+const unsigned long LED_Delays[3][2] = {
+    {500, 500}, // LED A
+    {50, 50},   // LED B
+    {10, 10}    // LED C
+};
+
+volatile int currentState = 0;
 unsigned long previousMillis = 0;
+unsigned long previousMillisLED = 0; 
 const long interval = 30000;  
+
+unsigned long lastSwitchTime = 0;  
+void handleLED(int state, unsigned long currentMillis);
 
 void setup() {
     pinMode(LED_PIN, OUTPUT);
@@ -20,37 +23,28 @@ void setup() {
 void loop() {
     unsigned long currentMillis = millis();
 
-    if (currentMillis - previousMillis >= interval) {
-        previousMillis = currentMillis;
+    if (currentMillis - lastSwitchTime >= interval) {
+        lastSwitchTime = currentMillis;
         currentState = (currentState + 1) % 3;
     }
 
-    switch (currentState) {
-        case 0:
-            digitalWrite(LED_PIN, HIGH);
-            printf("LED A ON\n");
-            delay(DELAY_ON_A);
-            digitalWrite(LED_PIN, LOW);
-            printf("LED A OFF\n");
-            delay(DELAY_OFF_A);
-            break;
+    handleLED(currentState, currentMillis);
+}
 
-        case 1:
-            digitalWrite(LED_PIN, HIGH);
-            printf("LED B ON\n");
-            delay(DELAY_ON_B);
-            digitalWrite(LED_PIN, LOW);
-            printf("LED B OFF\n");
-            delay(DELAY_OFF_B);
-            break;
+void handleLED(int state, unsigned long currentMillis) {
+    unsigned long delayOn = LED_Delays[state][0];
+    unsigned long delayOff = LED_Delays[state][1];
 
-        case 2:
-            digitalWrite(LED_PIN, HIGH);
-            printf("LED C ON\n");
-            delay(DELAY_ON_C);
-            digitalWrite(LED_PIN, LOW);
-            printf("LED C OFF\n");
-            delay(DELAY_OFF_C);
-            break;
+    if (currentMillis - previousMillisLED >= delayOn) {
+        digitalWrite(LED_PIN, LOW);
+        previousMillisLED = currentMillis;
+        Serial.print("LED ");
+        Serial.print((char)('A' + state)); 
+        Serial.println(" OFF");
+    } else {
+        digitalWrite(LED_PIN, HIGH);
+        Serial.print("LED ");
+        Serial.print((char)('A' + state)); 
+        Serial.println(" ON");
     }
 }
